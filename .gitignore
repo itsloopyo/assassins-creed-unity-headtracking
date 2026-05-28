@@ -1,0 +1,34 @@
+build/
+bin/
+obj/
+dist/
+release/
+.pixi/
+.headtracking-state.json
+.claude/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.log
+
+# Lab tooling and skills - local only.
+.lab/
+
+# Agent instructions and MCP config - local only.
+CLAUDE.md
+AGENTS.md
+.mcp.json
+skills/
+
+# Ghidra: copyrighted game binary, dumped proprietary DLLs, and project
+# databases. Local RE analysis only - never committed.
+ghidra/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# NexusMods page copy/paste source - local only.
+NEXUS_MODS.md

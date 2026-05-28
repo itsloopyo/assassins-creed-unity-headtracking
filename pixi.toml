@@ -1,0 +1,49 @@
+[workspace]
+name = "assassins-creed-unity-head-tracking"
+version = "0.0.0"
+description = "Head tracking mod for Assassin's Creed Unity via OpenTrack (AnvilNext 2.0 / ASI Loader)"
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tasks]
+# Manual: refresh vendored ASI Loader from upstream. Dev runs this when bumping
+# the bundled version, then commits. CI never refreshes.
+update-deps = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/update-deps.ps1" }
+
+# Setup CMake build (x64). ACU is a 64-bit AnvilNext 2.0 game.
+setup = { cmd = """
+    powershell -NoProfile -Command "if (-not (Test-Path 'build')) { cmake -B build -G 'Visual Studio 17 2022' -A x64 } else { Write-Host 'Build directory exists, skipping setup' -ForegroundColor Yellow }"
+""" }
+
+build = { cmd = "cmake --build build --config Debug", depends-on = ["setup"] }
+build-release = { cmd = "cmake --build build --config Release", depends-on = ["setup"] }
+
+deploy = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy.ps1 Debug", depends-on = ["build"] }
+install = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy.ps1 Release", depends-on = ["build-release"] }
+
+detect-game = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/detect-game.ps1" }
+
+# Dev launch: build, deploy Debug, then start ACU.exe directly (bypasses
+# Ubisoft Connect's launch splash). Ubisoft Connect is auto-started minimized
+# if not running, because ACU still needs it up for the ownership check.
+dev = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/launch.ps1", depends-on = ["deploy"] }
+
+# Dev-only: rename / restore ACU's startup splash videos so testing is quick.
+skip-intros = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/skip-intros.ps1" }
+restore-intros = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/skip-intros.ps1 -Restore" }
+
+uninstall = { cmd = "cmd /c scripts\\uninstall.cmd" }
+uninstall-all = { cmd = "cmd /c scripts\\uninstall.cmd --force" }
+
+clean = { cmd = """
+    powershell -NoProfile -Command "if (Test-Path 'build') { Remove-Item 'build' -Recurse -Force }; Write-Host 'Build artifacts cleaned' -ForegroundColor Green"
+""" }
+clean-all = { cmd = """
+    powershell -NoProfile -Command "if (Test-Path 'build') { Remove-Item 'build' -Recurse -Force }; if (Test-Path 'release') { Remove-Item 'release' -Recurse -Force }; Write-Host 'All build artifacts cleaned' -ForegroundColor Green"
+""" }
+
+package = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-release.ps1", depends-on = ["build-release"] }
+release = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1" }
+release-nightly = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-nightly.ps1" }
+
+[dependencies]

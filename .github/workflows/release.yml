@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Extract version from tag
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          if ($tag -notmatch '^v(\d+\.\d+\.\d+)$') {
+            Write-Host "::error::Tag '$tag' does not match v<major>.<minor>.<patch>"
+            exit 1
+          }
+          $version = $Matches[1]
+          "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Release version: $version"
+
+      - name: Validate version matches src/core/constants.h
+        shell: pwsh
+        run: |
+          $constants = 'src/core/constants.h'
+          $match = Select-String -Path $constants -Pattern 'ACUHT_VERSION\s*=\s*"([^"]+)"'
+          if (-not $match) {
+            Write-Host "::error::Could not extract ACUHT_VERSION from $constants"
+            exit 1
+          }
+          $sourceVersion = $match.Matches[0].Groups[1].Value
+          if ($sourceVersion -ne $env:RELEASE_VERSION) {
+            Write-Host "::error::Tag version $($env:RELEASE_VERSION) does not match constants.h version $sourceVersion"
+            exit 1
+          }
+          Write-Host "Version match: $sourceVersion"
+
+      - name: Configure CMake (x64)
+        shell: pwsh
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build Release
+        shell: pwsh
+        run: cmake --build build --config Release
+
+      - name: Package release
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Packaging failed"
+            exit 1
+          }
+
+      - name: Generate release notes
+        shell: pwsh
+        run: |
+          $script = 'cameraunlock-core/scripts/generate-release-notes.ps1'
+          & $script `
+            -Version $env:RELEASE_VERSION `
+            -OutputFile 'release-notes.txt' `
+            -ArtifactPaths @('src/', 'cameraunlock-core/', 'scripts/install.cmd', 'scripts/uninstall.cmd')
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Release notes generation failed"
+            exit 1
+          }
+
+      - name: Find release ZIPs
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -Path release -Filter "*-v$($env:RELEASE_VERSION)-installer.zip" | Select-Object -First 1
+          $nexus = Get-ChildItem -Path release -Filter "*-v$($env:RELEASE_VERSION)-nexus.zip" | Select-Object -First 1
+          if (-not $installer) { Write-Host "::error::Installer ZIP missing"; exit 1 }
+          if (-not $nexus)     { Write-Host "::error::Nexus ZIP missing"; exit 1 }
+          "INSTALLER_ZIP=$($installer.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "NEXUS_ZIP=$($nexus.FullName)"         | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Installer: $($installer.Name)"
+          Write-Host "Nexus:     $($nexus.Name)"
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create $env:RELEASE_TAG `
+            --title "Assassin's Creed Unity Head Tracking $env:RELEASE_TAG" `
+            --notes-file release-notes.txt `
+            "$env:INSTALLER_ZIP" `
+            "$env:NEXUS_ZIP"
