@@ -6,6 +6,7 @@
 
 #include <cameraunlock/math/quat4.h>
 #include <cameraunlock/math/vec3.h>
+#include <cameraunlock/memory/pe_fingerprint.h>
 
 #include <xmmintrin.h>
 #include <utility>
@@ -33,6 +34,18 @@ namespace ACUHT {
 // ----------------------------------------------------------------------------
 
 namespace {
+
+// Every address/RVA below is pinned to this exact build (ACU v1.5.0, the
+// final patch, 2015-02-11). The fingerprint is checked before any of them is
+// dereferenced or breakpointed; an unknown build leaves the mod fully dormant
+// instead of corrupting memory in a binary where these offsets mean something
+// else. If Ubisoft ever ships another build (or a store variant differs),
+// append a new profile - never edit these values in place.
+constexpr cameraunlock::memory::PeFingerprint kAcuV150Fingerprint = {
+    0x54DB5826,  // TimeDateStamp (2015-02-11)
+    0x07825000,  // SizeOfImage
+    0x01D87E65,  // CheckSum
+};
 
 constexpr uintptr_t kCameraManagerSingletonAddr = 0x14521AAD0;
 constexpr size_t    kCMOffArrToPlayerCam        = 0x40;   // SmallArray::arr ptr
@@ -125,19 +138,9 @@ bool IsInModuleSection(uintptr_t addr,
     return addr >= modBase && addr < modBase + modSize;
 }
 
-// Quaternion multiply, Hamilton product, components in (x, y, z, w) order
-// matching AnvilNext's Vector4f quaternion convention.
-inline void QuatMul(const float a[4], const float b[4], float out[4]) {
-    const float ax = a[0], ay = a[1], az = a[2], aw = a[3];
-    const float bx = b[0], by = b[1], bz = b[2], bw = b[3];
-    out[0] = aw * bx + ax * bw + ay * bz - az * by;
-    out[1] = aw * by - ax * bz + ay * bw + az * bx;
-    out[2] = aw * bz + ax * by - ay * bx + az * bw;
-    out[3] = aw * bw - ax * bx - ay * by - az * bz;
-}
-
 // Compose the game's clean quat with head tracking and write the result into
-// `out` (x, y, z, w). Axis mapping for AnvilNext (Z-up, Y-forward, RH):
+// `out` (x, y, z, w - same component order as Quat4 and AnvilNext's Vector4f).
+// Axis mapping for AnvilNext (Z-up, Y-forward, RH):
 //   yaw   -> rotation about +Z (up)
 //   pitch -> rotation about +X (right)
 //   roll  -> rotation about +Y (forward), sign-flipped per AGENTS.md
@@ -148,27 +151,26 @@ inline void QuatMul(const float a[4], const float b[4], float out[4]) {
 inline void ComposeHeadRotation(const float gameQ[4],
                                 float yawDeg, float pitchDeg, float rollDeg,
                                 bool worldYaw, float out[4]) {
+    using cameraunlock::math::Quat4;
+
     constexpr float kDeg2Rad = 0.017453292519943295f;
     const float hy = yawDeg   * kDeg2Rad * 0.5f;
     const float hp = pitchDeg * kDeg2Rad * 0.5f;
     const float hr = -rollDeg * kDeg2Rad * 0.5f;
 
-    float qy[4] = { 0.0f, 0.0f, sinf(hy), cosf(hy) };
-    float qp[4] = { sinf(hp), 0.0f, 0.0f, cosf(hp) };
-    float qr[4] = { 0.0f, sinf(hr), 0.0f, cosf(hr) };
+    const Quat4 qy(0.0f, 0.0f, sinf(hy), cosf(hy));
+    const Quat4 qp(sinf(hp), 0.0f, 0.0f, cosf(hp));
+    const Quat4 qr(0.0f, sinf(hr), 0.0f, cosf(hr));
+    const Quat4 game(gameQ[0], gameQ[1], gameQ[2], gameQ[3]);
 
-    if (worldYaw) {
-        float qpr[4];
-        QuatMul(qp, qr, qpr);
-        float localPart[4];
-        QuatMul(gameQ, qpr, localPart);   // gameQ * (pitch * roll), local frame
-        QuatMul(qy, localPart, out);      // worldYaw * gameQ * (pitch * roll)
-    } else {
-        float qyp[4], headQ[4];
-        QuatMul(qy, qp, qyp);
-        QuatMul(qyp, qr, headQ);          // (yaw * pitch * roll), local frame
-        QuatMul(gameQ, headQ, out);       // gameQ * headLocal
-    }
+    const Quat4 result = worldYaw
+        ? qy * (game * (qp * qr))   // worldYaw * gameQ * (pitch * roll), horizon-locked
+        : game * (qy * qp * qr);    // gameQ * headLocal
+
+    out[0] = result.x;
+    out[1] = result.y;
+    out[2] = result.z;
+    out[3] = result.w;
 }
 
 inline float Dot3f(const float a[3], const float b[3]) {
@@ -1043,6 +1045,35 @@ bool InstallCameraHook() {
     }
     const uintptr_t modBase = reinterpret_cast<uintptr_t>(mi.lpBaseOfDll);
     const size_t    modSize = mi.SizeOfImage;
+
+    // Build fingerprint gate: every offset this hook touches is pinned to
+    // ACU v1.5.0. On any other build, stay dormant - dereferencing the
+    // singleton slots or arming breakpoints at these RVAs in a different
+    // binary is memory corruption, not head tracking.
+    cameraunlock::memory::PeFingerprint running{};
+    if (!cameraunlock::memory::ReadPeFingerprint(gameModule, running)) {
+        Logger::Instance().Error(
+            "Camera hook: could not read ACU.exe PE header - staying dormant.");
+        return false;
+    }
+    Logger::Instance().Info(
+        "Camera hook: ACU.exe fingerprint ts=0x%08X size=0x%08X csum=0x%08X",
+        running.TimeDateStamp, running.SizeOfImage, running.CheckSum);
+    if (!running.Matches(kAcuV150Fingerprint)) {
+        const auto kind = cameraunlock::memory::ClassifyMismatch(running, kAcuV150Fingerprint);
+        const char* hint =
+            kind == cameraunlock::memory::FingerprintMismatch::Newer
+                ? "game build is newer than this mod supports - check for a mod update"
+            : kind == cameraunlock::memory::FingerprintMismatch::Older
+                ? "game build is older than v1.5.0 - let the store finish updating the game"
+                : "EXE does not match the supported build (tampered or repacked binary)";
+        Logger::Instance().Error(
+            "Camera hook: unknown ACU build (expected v1.5.0: ts=0x%08X size=0x%08X csum=0x%08X). "
+            "%s. Staying dormant - no hooks installed.",
+            kAcuV150Fingerprint.TimeDateStamp, kAcuV150Fingerprint.SizeOfImage,
+            kAcuV150Fingerprint.CheckSum, hint);
+        return false;
+    }
 
     if (!IsInModuleSection(kCameraManagerSingletonAddr, modBase, modSize)) {
         Logger::Instance().Error(

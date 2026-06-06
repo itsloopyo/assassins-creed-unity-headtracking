@@ -2,18 +2,10 @@
 
 #include "config.h"
 #include <cameraunlock/protocol/udp_receiver.h>
-#include <cameraunlock/processing/tracking_processor.h>
-#include <cameraunlock/processing/pose_interpolator.h>
-#include <cameraunlock/processing/position_processor.h>
-#include <cameraunlock/processing/position_interpolator.h>
+#include <cameraunlock/time/frame_clock.h>
+#include <cameraunlock/tracking/head_tracking_session.h>
 
 namespace ACUHT {
-
-enum class TrackingMode {
-    SixDof,        // rotation + position
-    RotationOnly,  // 3DOF rotational
-    PositionOnly,  // 3DOF positional
-};
 
 class Mod {
 public:
@@ -39,15 +31,8 @@ public:
     // Processed position offset in tracker space (meters).
     bool GetPositionOffset(float& x, float& y, float& z);
 
-    TrackingMode GetTrackingMode() const { return m_trackingMode; }
-    bool IsRotationActive() const {
-        return m_trackingMode == TrackingMode::SixDof ||
-               m_trackingMode == TrackingMode::RotationOnly;
-    }
-    bool IsPositionActive() const {
-        return m_trackingMode == TrackingMode::SixDof ||
-               m_trackingMode == TrackingMode::PositionOnly;
-    }
+    bool IsRotationActive() const { return m_session.IsRotationActive(); }
+    bool IsPositionActive() const { return m_session.IsPositionActive(); }
     bool IsWorldSpaceYaw() const { return m_worldSpaceYaw; }
 
     Mod(const Mod&) = delete;
@@ -66,35 +51,12 @@ private:
 
     Config m_config;
     cameraunlock::UdpReceiver m_udpReceiver;
-    cameraunlock::PoseInterpolator m_poseInterpolator;
-    cameraunlock::TrackingProcessor m_processor;
-    int64_t m_lastReceiveTimestamp = 0;
+    cameraunlock::HeadTrackingSession<cameraunlock::UdpReceiver> m_session{m_udpReceiver};
+    cameraunlock::time::FrameClock m_frameClock{0.1f};
 
-    cameraunlock::PositionProcessor m_positionProcessor;
-    cameraunlock::PositionInterpolator m_positionInterpolator;
-    TrackingMode m_trackingMode = TrackingMode::SixDof;
     bool m_worldSpaceYaw = true;
 
     uint64_t m_lastProcessTime = 0;
-    float m_lastDeltaTime = 0.016f;
-
-    float m_cachedYaw = 0.0f;
-    float m_cachedPitch = 0.0f;
-    float m_cachedRoll = 0.0f;
-    bool m_cachedValid = false;
-
-    uint64_t m_lastPositionProcessTime = 0;
-    float m_cachedPosX = 0.0f;
-    float m_cachedPosY = 0.0f;
-    float m_cachedPosZ = 0.0f;
-    bool m_cachedPosValid = false;
-
-    bool m_hasCentered = false;
-    int m_stabilizationFrames = 0;
-
-    float m_lastRawYaw = 0.0f;
-    float m_lastRawPitch = 0.0f;
-    float m_lastRawRoll = 0.0f;
 
     bool m_cameraHookInstalled = false;
     bool m_inputHookInstalled = false;

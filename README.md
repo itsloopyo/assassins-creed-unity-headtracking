@@ -168,7 +168,6 @@ MIT - see [LICENSE](LICENSE). Copyright (c) 2026 itsloopyo.
 ## Credits
 - **Ubisoft Montreal / Ubisoft** - Assassin's Creed Unity and the AnvilNext engine.
 - **ThirteenAG** - [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader).
-- **TsudaKageyu** - [MinHook](https://github.com/TsudaKageyu/minhook).
 - **Stanisław Halik et al.** - [OpenTrack](https://github.com/opentrack/opentrack).
 - Built on the shared [cameraunlock-core](https://github.com/itsloopyo/cameraunlock-core) library.
 

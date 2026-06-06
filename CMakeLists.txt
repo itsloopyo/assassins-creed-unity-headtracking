@@ -1,11 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
-project(AssassinsCreedUnityHeadTracking VERSION 0.1.0 LANGUAGES C CXX)
+project(AssassinsCreedUnityHeadTracking VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-include(FetchContent)
 
 if(WIN32)
     add_definitions(-DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS)
@@ -13,22 +11,6 @@ if(WIN32)
 endif()
 
 # --- Dependencies ---
-
-# MinHook for camera function hooking
-FetchContent_Declare(
-    minhook
-    GIT_REPOSITORY https://github.com/TsudaKageyu/minhook.git
-    GIT_TAG        v1.3.3
-    GIT_SHALLOW    TRUE
-)
-FetchContent_MakeAvailable(minhook)
-
-file(GLOB MINHOOK_SOURCES
-    ${minhook_SOURCE_DIR}/src/*.c
-    ${minhook_SOURCE_DIR}/src/hde/*.c
-)
-add_library(minhook STATIC ${MINHOOK_SOURCES})
-target_include_directories(minhook PUBLIC ${minhook_SOURCE_DIR}/include)
 
 # cameraunlock-core shared library
 set(CAMERAUNLOCK_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -43,14 +25,12 @@ set(MOD_SOURCES
     src/core/logger.cpp
     src/core/config.cpp
     src/core/path_utils.cpp
-    src/hooks/hook_manager.cpp
     src/hooks/input_hook.cpp
     src/hooks/camera_hook.cpp
 )
 
 add_library(AssassinsCreedUnityHeadTracking SHARED ${MOD_SOURCES})
 
-set_source_files_properties(${MINHOOK_SOURCES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 target_precompile_headers(AssassinsCreedUnityHeadTracking PRIVATE src/pch.h)
 
 # Output as .asi for Ultimate ASI Loader
@@ -63,7 +43,6 @@ set_target_properties(AssassinsCreedUnityHeadTracking PROPERTIES
 
 target_link_libraries(AssassinsCreedUnityHeadTracking PRIVATE
     cameraunlock
-    minhook
 )
 
 target_include_directories(AssassinsCreedUnityHeadTracking PRIVATE

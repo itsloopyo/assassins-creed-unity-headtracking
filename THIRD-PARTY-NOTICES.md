@@ -10,16 +10,6 @@
 
 ---
 
-## MinHook
-
-- **Version:** v1.3.3
-- **License:** BSD-2-Clause
-- **Upstream:** https://github.com/TsudaKageyu/minhook
-- **Usage:** API hooking library, linked statically into `AssassinsCreedUnityHeadTracking.asi`.
-- **Bundled:** yes. Linked statically; fetched via CMake FetchContent at build time.
-
----
-
 ## cameraunlock-core
 
 - **Version:** git submodule (see `cameraunlock-core/` commit)

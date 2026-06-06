@@ -23,13 +23,10 @@
 #include <sstream>
 #include <iomanip>
 
-#include "MinHook.h"
-
 #include "core/constants.h"
 
 namespace ACUHT {
     class Mod;
     struct Config;
     class Logger;
-    class HookManager;
 }
