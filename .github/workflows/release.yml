@@ -54,8 +54,12 @@ jobs:
       - name: Setup Visual Studio environment
         uses: microsoft/setup-msbuild@v3
 
+      # Pixi is only a task runner (no conda dependencies); run-install: false
+      # skips the empty-environment `pixi install`/`pixi list`. See build.yml.
       - name: Setup pixi
-        uses: prefix-dev/setup-pixi@v0.8.1
+        uses: prefix-dev/setup-pixi@v0.9.6
+        with:
+          run-install: false
 
       # Same command as build.yml and developers run - no build logic in YAML.
       - name: Build and package

@@ -28,8 +28,15 @@ jobs:
       - name: Setup Visual Studio environment
         uses: microsoft/setup-msbuild@v3
 
+      # Pixi is only a task runner here (the build uses the runner's CMake +
+      # MSBuild, not conda packages), so the environment has no dependencies.
+      # run-install: false skips `pixi install`/`pixi list` - the latter exits
+      # non-zero on an empty environment. `pixi run package` provisions the
+      # empty env itself.
       - name: Setup pixi
-        uses: prefix-dev/setup-pixi@v0.8.1
+        uses: prefix-dev/setup-pixi@v0.9.6
+        with:
+          run-install: false
 
       # Build + package through the SAME command a developer runs locally. All
       # build logic lives in the pixi task chain (cmake configure -> build ->
