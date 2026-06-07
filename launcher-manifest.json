@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "mod_info": {
+    "name": "AssassinsCreedUnityHeadTracking",
+    "version": "0.0.0",
+    "game_id": "assassins-creed-unity"
+  },
+  "strategy": "AsiLoader",
+  "delivery_mode": "manifest",
+
+  "loader": {
+    "seed": [
+      {
+        "target": "HeadTracking.ini",
+        "content_b64": "OyBBc3Nhc3NpbidzIENyZWVkIFVuaXR5IEhlYWQgVHJhY2tpbmcgQ29uZmlndXJhdGlvbgo7IFRoaXMgZmlsZSBzaGlwcyB3aXRoIHNlbnNpYmxlIGRlZmF1bHRzOyBlZGl0IHRvIHRhc3RlLiBEZWxldGUgdG8gcmVzZXQuCgpbTmV0d29ya10KOyBVRFAgcG9ydCBmb3IgT3BlblRyYWNrIGRhdGEgKGRlZmF1bHQ6IDQyNDIpClVEUFBvcnQ9NDI0MgoKW1NlbnNpdGl2aXR5XQpZYXdNdWx0aXBsaWVyPTEuMApQaXRjaE11bHRpcGxpZXI9MS4wCjsgUm9sbCByZWR1Y2VkIGZvciB0aGlyZC1wZXJzb24gKGRlZmF1bHQ6IDAuNSkuIEFDVSBpcyBwcmltYXJpbHkgYQo7IHRoaXJkLXBlcnNvbiBwYXJrb3VyIGdhbWUsIGFuZCB1bmNoZWNrZWQgcm9sbCB3aGlwcyB0aGUgaG9yaXpvbiBvbgo7IGV2ZXJ5IHJvb2Z0b3AgbGFuZGluZy4gUmFpc2UgdG8gMS4wIGZvciBhIG1vcmUgZXhwcmVzc2l2ZSB0aWx0LgpSb2xsTXVsdGlwbGllcj0wLjUKOyAwLjAgPSBtaW5pbXVtIChhIDAuMTUgZmxvb3IgaXMgYXBwbGllZCBpbnRlcm5hbGx5IHRvIGtpbGwgaml0dGVyKS4KOyAxLjAgPSBoZWF2eSBzbW9vdGhpbmcgKH41cyBzZXR0bGluZykuClNtb290aGluZz0wLjAKCltQb3NpdGlvbl0KOyBQb3NpdGlvbiBzZW5zaXRpdml0eSBtdWx0aXBsaWVycy4gQUNVJ3MgZm9sbG93IGNhbWVyYSBzaXRzIGNsb3NlIHRvCjsgQXJubydzIGJhY2ssIHNvIDEuMCBpcyBwbGVudHkgLSB5b3UnbGwgaGl0IHRoZSBsaW1pdCBiZWZvcmUgeW91CjsgY2xpcCB0aHJvdWdoIGdlb21ldHJ5LgpTZW5zaXRpdml0eVg9MS4wClNlbnNpdGl2aXR5WT0xLjAKU2Vuc2l0aXZpdHlaPTEuMAo7IFBvc2l0aW9uYWwgbGltaXRzIGluIG1ldGVycy4gS2VwdCBjb25zZXJ2YXRpdmUgdG8gbWF0Y2ggQUNVJ3MgdGlnaHQKOyBmb2xsb3ctY2FtZXJhOyByYWlzZSB0aGVzZSBvbmx5IGlmIHlvdSB3YW50IG1vcmUgbGVhbmluZyByb29tLgpMaW1pdFg9MC4yMApMaW1pdFk9MC4xNQpMaW1pdFo9MC4yNQpMaW1pdFpCYWNrPTAuMDUKU21vb3RoaW5nPTAuMTUKSW52ZXJ0WD10cnVlCkludmVydFk9ZmFsc2UKSW52ZXJ0Wj1mYWxzZQpFbmFibGVkPXRydWUKCltIb3RrZXlzXQo7IFZpcnR1YWwga2V5IGNvZGVzIGluIGhleC4gTmF2LWNsdXN0ZXIgZGVmYXVsdHM6ClRvZ2dsZUtleT0weDIzICAgICAgICA7IEVuZApSZWNlbnRlcktleT0weDI0ICAgICAgOyBIb21lClBvc2l0aW9uVG9nZ2xlS2V5PTB4MjE7IFBhZ2UgVXAKWWF3TW9kZUtleT0weDIyICAgICAgIDsgUGFnZSBEb3duCjsgQ2hvcmQgYWx0ZXJuYXRpdmVzIChDdHJsK1NoaWZ0KzxsZXR0ZXI+KSBmb3Iga2V5Ym9hcmRzIHdpdGhvdXQgYSBuYXYgY2x1c3RlcjoKQ2hvcmRUb2dnbGVLZXk9MHg1OSAgIDsgWQpDaG9yZFJlY2VudGVyS2V5PTB4NTQgOyBUCkNob3JkUG9zaXRpb25LZXk9MHg0NyA7IEcKQ2hvcmRZYXdNb2RlS2V5PTB4NDggIDsgSAoKW0dlbmVyYWxdCkF1dG9FbmFibGU9dHJ1ZQo7IEhvcml6b24tbG9ja2VkIHlhdyAodHJ1ZSkgaXMgYmVzdCBmb3IgdGhpcmQtcGVyc29uIGdhbWVzLgpXb3JsZFNwYWNlWWF3PXRydWUKOyBTZXQgdG8gZmFsc2Ugb25jZSBjYW1lcmEgb2Zmc2V0cyBhcmUgY29uZmlybWVkIC0gdHJpbXMgbG9nIG5vaXNlLgpDYW1lcmFIb29rTG9nZ2luZz10cnVlCgpbQ3VsbGluZ10KOyBXaWRlbnMgYWN0b3IgdmlzaWJpbGl0eSBjdWxsaW5nIHNvIGhlYWQgdHVybnMgZG8gbm90IHJldmVhbCBlbXB0eSBjcm93ZCBlZGdlcy4KOyBUaGlzIGRvZXMgbm90IGNoYW5nZSB0aGUgcmVuZGVyZWQgRk9WLiBDdHJsK1NoaWZ0K0ogdG9nZ2xlcyBpdCBpbi1nYW1lLgpHdWFyZEVuYWJsZWQ9dHJ1ZQo7IFNpZGUtcGxhbmUgb3V0d2FyZCBiaWFzIGluIG1ldHJlcy4KR3VhcmRCaWFzTWV0ZXJzPTUwMC4wCg=="
+      }
+    ]
+  },
+
+  "files": [
+    {
+      "source": "vendor/ultimate-asi-loader/dinput8.dll",
+      "target": "dinput8.dll",
+      "backup": true
+    },
+    {
+      "source": "plugins/AssassinsCreedUnityHeadTracking.asi",
+      "target": "AssassinsCreedUnityHeadTracking.asi"
+    }
+  ],
+
+  "runtime_requirements": [],
+  "dependencies": []
+}

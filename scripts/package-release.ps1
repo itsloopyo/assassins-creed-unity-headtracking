@@ -30,6 +30,16 @@ if (-not (Test-Path $vendorAsiDll)) {
     throw "Bundled ASI loader missing: $vendorAsiDll. Run 'pixi run update-deps' first."
 }
 
+# launcher-manifest.json is the contract the Lopari launcher reads at the ZIP
+# root. delivery_mode "install_cmd" keeps us on the legacy script path; the
+# version is stamped to match constants.h at package time.
+$launcherManifestPath = Join-Path $ProjectRoot "launcher-manifest.json"
+if (-not (Test-Path $launcherManifestPath)) {
+    throw "launcher-manifest.json not found at: $launcherManifestPath"
+}
+$launcherManifest = Get-Content $launcherManifestPath -Raw | ConvertFrom-Json
+$launcherManifest.mod_info.version = $version
+
 if (-not (Test-Path $ReleaseDir)) {
     New-Item -ItemType Directory -Path $ReleaseDir | Out-Null
 }
@@ -62,6 +72,10 @@ foreach ($vendorFile in @("dinput8.dll", "LICENSE", "README.md")) {
 # Top-level scripts and docs
 Copy-Item (Join-Path $PSScriptRoot "install.cmd")   $stagingDir
 Copy-Item (Join-Path $PSScriptRoot "uninstall.cmd") $stagingDir
+
+# launcher-manifest.json at the ZIP root, version stamped to match the build.
+$launcherManifest | ConvertTo-Json -Depth 10 |
+    Set-Content -Path (Join-Path $stagingDir "launcher-manifest.json") -Encoding UTF8
 foreach ($doc in @("README.md", "CHANGELOG.md", "THIRD-PARTY-NOTICES.md", "LICENSE")) {
     $src = Join-Path $ProjectRoot $doc
     if (Test-Path $src) { Copy-Item $src $stagingDir }

@@ -6,11 +6,11 @@ Refresh manually with `pixi run update-deps`, then commit.
 ## Snapshot
 
 - Upstream: https://github.com/ThirteenAG/Ultimate-ASI-Loader
-- Tag: `v9.7.1`
-- Commit: `2155f2177733d673a3eb783141ceedd564a0a0e2`
+- Tag: `v9.7.2`
+- Commit: `ab722befd52581a34449b603926cfab476e66b05`
 - Asset: `Ultimate-ASI-Loader_x64.zip`
-- dinput8.dll SHA-256: `810111a7f6a6cef892877c9f7c4582ccde2d621d119891f700c5309c370508bf`
-- Fetched at: 2026-05-05T08:41:51.4791096+01:00
+- dinput8.dll SHA-256: `22fda9c71eaae02460f311bf3441638340ab591586d78f1de213c4819dcb883c`
+- Fetched at: 2026-06-07T13:09:04.6035592+01:00
 
 `dinput8.dll` is extracted from the upstream asset untouched. install.cmd copies it to
 the ACU exe dir as `dinput8.dll` (the hook slot ACU loads ASI plugins through).
