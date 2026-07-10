@@ -11,8 +11,11 @@ platforms = ["win-64"]
 update-deps = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/update-deps.ps1" }
 
 # Setup CMake build (x64). ACU is a 64-bit AnvilNext 2.0 game.
+# No -G: let CMake auto-detect the installed Visual Studio generator. Pinning
+# "Visual Studio 17 2022" broke on CI once the windows runner image moved to
+# VS 2026 (VS 17 absent); auto-detect picks whatever VS the machine has.
 setup = { cmd = """
-    powershell -NoProfile -Command "if (-not (Test-Path 'build')) { cmake -B build -G 'Visual Studio 17 2022' -A x64 } else { Write-Host 'Build directory exists, skipping setup' -ForegroundColor Yellow }"
+    powershell -NoProfile -Command "if (-not (Test-Path 'build')) { cmake -B build -A x64 } else { Write-Host 'Build directory exists, skipping setup' -ForegroundColor Yellow }"
 """ }
 
 build = { cmd = "cmake --build build --config Debug", depends-on = ["setup"] }
