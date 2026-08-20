@@ -66,7 +66,6 @@ Two equivalent binding sets - use whichever your keyboard has:
 
 | Action              | Nav-cluster | Chord           |
 |---------------------|-------------|-----------------|
-| Recenter            | `Home`      | `Ctrl+Shift+T`  |
 | Toggle tracking     | `End`       | `Ctrl+Shift+Y`  |
 | Cycle tracking mode | `Page Up`   | `Ctrl+Shift+G`  |
 | Toggle yaw mode     | `Page Down` | `Ctrl+Shift+H`  |
@@ -94,9 +93,12 @@ PitchMultiplier=1.0
 ; Roll reduced for third-person. ACU is a parkour game and unchecked
 ; roll whips the horizon on rooftop landings. Raise to 1.0 for more tilt.
 RollMultiplier=0.5
-; 0.0 = minimum (a 0.15 floor is applied internally to kill jitter).
-; 1.0 = heavy smoothing (~5s settling).
-Smoothing=0.0
+; Smoothing is chosen per connection and covers rotation and position.
+; LocalSmoothing applies when the tracker runs on this machine (loopback),
+; RemoteSmoothing when it is a phone or other device on the network.
+; 0.0 = no smoothing, 1.0 = heavy (~5s settling).
+LocalSmoothing=0.0
+RemoteSmoothing=0.15
 
 [Position]
 SensitivityX=1.0
@@ -107,7 +109,6 @@ LimitX=0.20
 LimitY=0.15
 LimitZ=0.25
 LimitZBack=0.05
-Smoothing=0.15
 InvertX=false
 InvertY=false
 InvertZ=false
@@ -116,12 +117,10 @@ Enabled=true
 [Hotkeys]
 ; Virtual key codes in hex. Nav-cluster defaults:
 ToggleKey=0x23        ; End
-RecenterKey=0x24      ; Home
 PositionToggleKey=0x21; Page Up
 YawModeKey=0x22       ; Page Down
 ; Chord alternatives (Ctrl+Shift+<letter>):
 ChordToggleKey=0x59   ; Y
-ChordRecenterKey=0x54 ; T
 ChordPositionKey=0x47 ; G
 ChordYawModeKey=0x48  ; H
 
@@ -140,9 +139,9 @@ GuardBiasMeters=500.0
 ```
 
 ## Troubleshooting
-- **Mod not loading** - confirm `dinput8.dll` and `AssassinsCreedUnityHeadTracking.asi` sit next to `ACU.exe`. A `HeadTracking.log` file appearing next to them is a good sign; include it if you file an issue. If the game crashes on launch, removing those two files restores vanilla behavior.
+- **Mod not loading** - confirm `dinput8.dll` and `AssassinsCreedUnityHeadTracking.asi` sit next to `ACU.exe`. A `HeadTracking.log` file appearing next to them is a good sign. It is rewritten on every launch and the previous run is kept as `HeadTracking.prev.log`, so send both when reporting a problem. If the game crashes on launch, removing those two files restores vanilla behavior.
 - **No tracking response** - check that your tracker is outputting UDP to `127.0.0.1:4242` and that the port matches `UDPPort` in `HeadTracking.ini`.
-- **Jittery or unstable tracking** - raise `[Sensitivity] Smoothing` toward `0.3`. A 0.15 floor is always applied, which is usually enough for wired trackers; wireless or WiFi trackers may want more.
+- **Jittery or unstable tracking** - raise `[Sensitivity] LocalSmoothing` (tracker on this PC) or `[Sensitivity] RemoteSmoothing` (phone or other network device) toward `0.3`. Local defaults to `0.0` for zero latency, remote to `0.15` because network packets jitter; the mod picks one per connection from the packet source address.
 - **Wrong rotation / horizon whipping** - lower `[Sensitivity] RollMultiplier`, or set `[General] WorldSpaceYaw=true` for horizon-locked yaw. Use the invert options in `[Position]` if an axis moves the wrong way.
 - **NPCs disappear while turning your head** - keep `[Culling] GuardEnabled=true`. Raise `GuardBiasMeters` if crowd edges still pop; lower it if you need to test performance impact.
 

@@ -13,7 +13,7 @@ set "MOD_VERSION=0.0.0"
 set "STATE_FILE=.headtracking-state.json"
 set "FRAMEWORK_TYPE=ASILoader"
 set "ASI_LOADER_NAME=dinput8.dll"
-set "MOD_CONTROLS=Controls:&echo   Home/Ctrl+Shift+T - Recenter head tracking&echo   End/Ctrl+Shift+Y  - Toggle head tracking on/off&echo   PgUp/Ctrl+Shift+G - Toggle position tracking&echo   PgDn/Ctrl+Shift+H - Toggle world/local yaw"
+set "MOD_CONTROLS=Controls:&echo   End/Ctrl+Shift+Y  - Toggle head tracking on/off&echo   PgUp/Ctrl+Shift+G - Toggle position tracking&echo   PgDn/Ctrl+Shift+H - Toggle world/local yaw"
 :: ASI_LOADER_NAME is the filename the ASI DLL is renamed to. DL2 and most
 :: modern games use winmm.dll; older ones use dinput8.dll or xinput1_3.dll.
 :: vendor/ultimate-asi-loader/dinput8.dll is the bundled source; we copy it

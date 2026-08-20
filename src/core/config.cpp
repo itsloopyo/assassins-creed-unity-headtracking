@@ -6,6 +6,29 @@
 
 namespace ACUHT {
 
+// Warned once per process rather than once per load: config is reloadable, and
+// repeating this on every reload buries it.
+//
+// The old value is deliberately NOT migrated into the new keys. The single
+// Smoothing value carried a hidden 0.15 floor, so the number in an existing
+// config does not mean what it used to: copying it across would hand a local
+// user smoothing they never chose under the new semantics, and copying it into
+// only one of the two keys would be a guess about which connection they were on.
+static void WarnRetiredSmoothingKey(const cameraunlock::IniReader& reader,
+                                    const char* section, const char* key) {
+    static bool warned = false;
+    if (warned) return;
+    if (reader.ReadString(section, key, "").empty()) return;
+    warned = true;
+    Logger::Instance().Warning(
+        "Config key [%s] %s has been retired and is IGNORED. Smoothing is now two "
+        "keys: LocalSmoothing (default 0, applies to a tracker on this machine) and "
+        "RemoteSmoothing (default 0.15, applies to a tracker on the network). The "
+        "old value is not migrated because the semantics changed - it carried a "
+        "hidden 0.15 floor that no longer exists. Set the two new keys.",
+        section, key);
+}
+
 void Config::SetDefaults() {
     *this = Config{};
 }
@@ -14,7 +37,8 @@ void Config::Validate() {
     yawMultiplier   = std::clamp(yawMultiplier,   0.1f, 5.0f);
     pitchMultiplier = std::clamp(pitchMultiplier, 0.1f, 5.0f);
     rollMultiplier  = std::clamp(rollMultiplier,  0.0f, 2.0f);
-    smoothing       = std::clamp(smoothing,       0.0f, 1.0f);
+    localSmoothing  = std::clamp(localSmoothing,  0.0f, 1.0f);
+    remoteSmoothing = std::clamp(remoteSmoothing, 0.0f, 1.0f);
 
     positionSensitivityX = std::clamp(positionSensitivityX, 0.1f, 10.0f);
     positionSensitivityY = std::clamp(positionSensitivityY, 0.1f, 10.0f);
@@ -24,7 +48,6 @@ void Config::Validate() {
     positionLimitY     = std::clamp(positionLimitY,     0.01f, 2.0f);
     positionLimitZ     = std::clamp(positionLimitZ,     0.01f, 2.0f);
     positionLimitZBack = std::clamp(positionLimitZBack, 0.01f, 2.0f);
-    positionSmoothing  = std::clamp(positionSmoothing,  0.0f,  0.99f);
     cullGuardBiasMeters = std::clamp(cullGuardBiasMeters, 0.0f, 2000.0f);
 
     if (udpPort < 1024) {
@@ -56,17 +79,17 @@ bool Config::Load(const char* path) {
     yawMultiplier   = ini.ReadFloat("Sensitivity", "YawMultiplier",   yawMultiplier);
     pitchMultiplier = ini.ReadFloat("Sensitivity", "PitchMultiplier", pitchMultiplier);
     rollMultiplier  = ini.ReadFloat("Sensitivity", "RollMultiplier",  rollMultiplier);
-    smoothing       = ini.ReadFloat("Sensitivity", "Smoothing",       smoothing);
+    localSmoothing  = ini.ReadFloat("Sensitivity", "LocalSmoothing",  localSmoothing);
+    remoteSmoothing = ini.ReadFloat("Sensitivity", "RemoteSmoothing", remoteSmoothing);
+    WarnRetiredSmoothingKey(ini, "Sensitivity", "Smoothing");
     invertYaw       = ini.ReadBool( "Sensitivity", "InvertYaw",       invertYaw);
     invertPitch     = ini.ReadBool( "Sensitivity", "InvertPitch",     invertPitch);
     invertRoll      = ini.ReadBool( "Sensitivity", "InvertRoll",      invertRoll);
 
     toggleKey         = ini.ReadHex("Hotkeys", "ToggleKey",         toggleKey);
-    recenterKey       = ini.ReadHex("Hotkeys", "RecenterKey",       recenterKey);
     positionToggleKey = ini.ReadHex("Hotkeys", "PositionToggleKey", positionToggleKey);
     yawModeKey        = ini.ReadHex("Hotkeys", "YawModeKey",        yawModeKey);
     chordToggleKey    = ini.ReadHex("Hotkeys", "ChordToggleKey",    chordToggleKey);
-    chordRecenterKey  = ini.ReadHex("Hotkeys", "ChordRecenterKey",  chordRecenterKey);
     chordPositionKey  = ini.ReadHex("Hotkeys", "ChordPositionKey",  chordPositionKey);
     chordYawModeKey   = ini.ReadHex("Hotkeys", "ChordYawModeKey",   chordYawModeKey);
 
@@ -77,11 +100,11 @@ bool Config::Load(const char* path) {
     positionLimitY       = ini.ReadFloat("Position", "LimitY",       positionLimitY);
     positionLimitZ       = ini.ReadFloat("Position", "LimitZ",       positionLimitZ);
     positionLimitZBack   = ini.ReadFloat("Position", "LimitZBack",   positionLimitZBack);
-    positionSmoothing    = ini.ReadFloat("Position", "Smoothing",    positionSmoothing);
     positionInvertX      = ini.ReadBool( "Position", "InvertX",      positionInvertX);
     positionInvertY      = ini.ReadBool( "Position", "InvertY",      positionInvertY);
     positionInvertZ      = ini.ReadBool( "Position", "InvertZ",      positionInvertZ);
     positionEnabled      = ini.ReadBool( "Position", "Enabled",      positionEnabled);
+    WarnRetiredSmoothingKey(ini, "Position", "Smoothing");
 
     autoEnable         = ini.ReadBool("General", "AutoEnable",         autoEnable);
     worldSpaceYaw      = ini.ReadBool("General", "WorldSpaceYaw",      worldSpaceYaw);
@@ -113,8 +136,12 @@ bool Config::Save(const char* path) const {
     file << "YawMultiplier=" << yawMultiplier << "\n";
     file << "PitchMultiplier=" << pitchMultiplier << "\n";
     file << "RollMultiplier=" << rollMultiplier << "\n";
-    file << "; 0.0 = minimum (baseline 0.15 floor applied internally), 1.0 = heavy\n";
-    file << "Smoothing=" << smoothing << "\n";
+    file << "; Smoothing is chosen per connection and covers rotation and position.\n";
+    file << "; LocalSmoothing applies when the tracker runs on this machine (loopback),\n";
+    file << "; RemoteSmoothing when it is a remote device on the network.\n";
+    file << "; 0.0 = no smoothing, 1.0 = heavy.\n";
+    file << "LocalSmoothing=" << localSmoothing << "\n";
+    file << "RemoteSmoothing=" << remoteSmoothing << "\n";
     file << "; ACU's camera quaternion convention is mirrored vs OpenTrack yaw.\n";
     file << "InvertYaw="   << (invertYaw   ? "true" : "false") << "\n";
     file << "InvertPitch=" << (invertPitch ? "true" : "false") << "\n";
@@ -131,7 +158,6 @@ bool Config::Save(const char* path) const {
     file << "LimitY=" << positionLimitY << "\n";
     file << "LimitZ=" << positionLimitZ << "\n";
     file << "LimitZBack=" << positionLimitZBack << "\n";
-    file << "Smoothing=" << positionSmoothing << "\n";
     file << "InvertX=" << (positionInvertX ? "true" : "false") << "\n";
     file << "InvertY=" << (positionInvertY ? "true" : "false") << "\n";
     file << "InvertZ=" << (positionInvertZ ? "true" : "false") << "\n";
@@ -140,14 +166,12 @@ bool Config::Save(const char* path) const {
     file << "[Hotkeys]\n";
     file << "; Virtual key codes in hex. Nav-cluster defaults:\n";
     file << "ToggleKey=0x"         << std::hex << toggleKey         << "    ; End\n";
-    file << "RecenterKey=0x"       << std::hex << recenterKey       << "    ; Home\n";
     file << "PositionToggleKey=0x" << std::hex << positionToggleKey << "    ; Page Up\n";
     file << "YawModeKey=0x"        << std::hex << yawModeKey        << "    ; Page Down\n";
     file << std::dec;
     file << "; Chord alternatives for laptops without a nav cluster:\n";
     file << "; Ctrl+Shift+<letter> (letter VK in hex below)\n";
     file << "ChordToggleKey=0x"   << std::hex << chordToggleKey   << "    ; Y\n";
-    file << "ChordRecenterKey=0x" << std::hex << chordRecenterKey << "    ; T\n";
     file << "ChordPositionKey=0x" << std::hex << chordPositionKey << "    ; G\n";
     file << "ChordYawModeKey=0x"  << std::hex << chordYawModeKey  << "    ; H\n\n";
     file << std::dec;

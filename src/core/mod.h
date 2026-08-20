@@ -18,7 +18,6 @@ public:
     void SetEnabled(bool enabled);
     void Toggle();
 
-    void Recenter();
     void CycleTrackingMode();
     void ToggleYawMode();
 
@@ -45,6 +44,9 @@ private:
     bool LoadConfig();
     bool InitializeHooks();
     void ShutdownHooks();
+    // Reports which of the two smoothing parameters the session is now using,
+    // which follows the receiver's source-address classification.
+    void LogConnectionLocality();
 
     std::atomic<bool> m_enabled{false};
     std::atomic<bool> m_initialized{false};
@@ -57,6 +59,9 @@ private:
     bool m_worldSpaceYaw = true;
 
     uint64_t m_lastProcessTime = 0;
+
+    // Last locality reported; the session owns the flag the processors use.
+    bool m_isRemoteConnection = false;
 
     bool m_cameraHookInstalled = false;
     bool m_inputHookInstalled = false;

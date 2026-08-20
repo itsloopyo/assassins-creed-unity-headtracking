@@ -22,14 +22,12 @@ bool InstallInputHook() {
 
     // Nav-cluster keys.
     g_poller.SetToggleKey(config.toggleKey, [] { Mod::Instance().Toggle(); });
-    g_poller.SetRecenterKey(config.recenterKey, [] { Mod::Instance().Recenter(); });
     g_poller.AddHotkey(config.positionToggleKey, [] { Mod::Instance().CycleTrackingMode(); });
     g_poller.AddHotkey(config.yawModeKey, [] { Mod::Instance().ToggleYawMode(); });
 
     // Chord alternatives (Ctrl+Shift+<letter>); ChordGuarded gates each
     // action on the modifier state.
     g_poller.AddHotkey(config.chordToggleKey,   ChordGuarded([] { Mod::Instance().Toggle(); }));
-    g_poller.AddHotkey(config.chordRecenterKey, ChordGuarded([] { Mod::Instance().Recenter(); }));
     g_poller.AddHotkey(config.chordPositionKey, ChordGuarded([] { Mod::Instance().CycleTrackingMode(); }));
     g_poller.AddHotkey(config.chordYawModeKey,  ChordGuarded([] { Mod::Instance().ToggleYawMode(); }));
 

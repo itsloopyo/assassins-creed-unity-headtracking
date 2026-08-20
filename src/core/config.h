@@ -20,18 +20,19 @@ struct Config {
     bool invertPitch = false;
     bool invertRoll  = false;
 
-    // Smoothing (0.0 = minimum - baseline 0.15 floor applied internally)
-    float smoothing = 0.0f;
+    // Smoothing is picked per connection from the packet source address: a
+    // tracker on this machine (loopback) uses localSmoothing, a remote network
+    // device uses remoteSmoothing. Both cover rotation and position.
+    float localSmoothing = 0.0f;
+    float remoteSmoothing = 0.15f;
 
     // Hotkeys (nav cluster)
     int toggleKey          = DEFAULT_TOGGLE_KEY;
-    int recenterKey        = DEFAULT_RECENTER_KEY;
     int positionToggleKey  = DEFAULT_POSITION_TOGGLE_KEY;
     int yawModeKey         = DEFAULT_YAW_MODE_KEY;
 
     // Chord alternatives (Ctrl+Shift+<letter>)
     int chordToggleKey   = CHORD_TOGGLE_KEY;
-    int chordRecenterKey = CHORD_RECENTER_KEY;
     int chordPositionKey = CHORD_POSITION_KEY;
     int chordYawModeKey  = CHORD_YAWMODE_KEY;
 
@@ -45,7 +46,6 @@ struct Config {
     float positionLimitY = 0.15f;
     float positionLimitZ = 0.25f;
     float positionLimitZBack = 0.05f;
-    float positionSmoothing = 0.15f;
     bool positionInvertX = true;
     bool positionInvertY = false;
     bool positionInvertZ = false;

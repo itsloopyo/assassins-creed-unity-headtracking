@@ -995,15 +995,21 @@ void WatcherThread(uintptr_t modBase, size_t modSize) {
     constexpr DWORD kPollInterval = 250;  // ms
     int totalPatched = 0;
     int loops = 0;
+    int waitLogs = 0;
     while (!g_watcherStop.load(std::memory_order_relaxed)) {
         int p = PatchAllInstances(modBase, modSize);
         if (p > 0) {
             totalPatched += p;
             if (totalPatched == p) g_installed.store(true);
         }
-        if (++loops % 20 == 0 && totalPatched == 0) {
+        // Capped: this polls every 250ms and the state it reports does not
+        // change on its own, so left uncapped it becomes the bulk of the log a
+        // user is asked to send after reporting no head tracking.
+        if (++loops % 20 == 0 && totalPatched == 0 && waitLogs < 6) {
+            ++waitLogs;
             Logger::Instance().Info(
-                "Camera hook: waiting for player camera instance...");
+                "Camera hook: waiting for player camera instance...%s",
+                waitLogs == 6 ? " (last of these; still waiting silently)" : "");
         }
 
         bool menuOpen = IsAnyMenuOpen();

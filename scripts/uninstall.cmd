@@ -8,7 +8,7 @@
 :: --- CONFIG BLOCK ---
 set "GAME_ID=assassins-creed-unity"
 set "MOD_DISPLAY_NAME=Assassin's Creed Unity Head Tracking"
-set "MOD_DLLS=AssassinsCreedUnityHeadTracking.asi HeadTracking.ini"
+set "MOD_DLLS=AssassinsCreedUnityHeadTracking.asi HeadTracking.ini HeadTracking.log HeadTracking.prev.log"
 set "MOD_INTERNAL_NAME=AssassinsCreedUnityHeadTracking"
 set "STATE_FILE=.headtracking-state.json"
 set "FRAMEWORK_TYPE=ASILoader"

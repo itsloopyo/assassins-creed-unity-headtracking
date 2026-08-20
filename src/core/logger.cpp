@@ -15,6 +15,10 @@ bool Logger::Initialize() {
     if (m_initialized) return true;
 
     std::string logPath = GetModulePath("HeadTracking.log");
+    // Keep one previous generation: the session worth reading is often the one
+    // that just crashed, and the user relaunches before sending the file.
+    MoveFileExA(logPath.c_str(), GetModulePath("HeadTracking.prev.log").c_str(),
+                MOVEFILE_REPLACE_EXISTING);
     m_logFile.open(logPath, std::ios::out | std::ios::trunc);
     if (!m_logFile.is_open()) return false;
 
