@@ -18,19 +18,22 @@ namespace ACUHT {
 // AnvilNext 2.0 camera hook for Assassin's Creed Unity v1.5.0
 // ----------------------------------------------------------------------------
 //
-// All offsets and the singleton address come from the open-source
+// All offsets and the singleton address are the ones published by the
 // NameTaken3125/ACUFixes reverse-engineering project, which targets the same
-// game version. References:
+// game version. Its findings are referenced as numbers; none of its code is
+// used here (it publishes no license). References:
 //   CommonLibACU/ACU-RE/inc/ACU/CameraManager.h
 //   CommonLibACU/ACU-RE/inc/ACU/ACUPlayerCameraComponent.h
 //
 // Why per-instance vtable swap instead of MinHook function patching:
-// ACU is VMProtect-wrapped and periodically hashes its .text section. A
-// MinHook prologue patch is detected within ~2 seconds and the process is
-// terminated. Modifying .rdata (the original vtable) trips a similar check.
-// Per-instance vtable replacement leaves both .text and .rdata untouched -
-// the only memory we write is the heap-allocated camera object's vptr slot
-// (offset 0), which VMProtect does not hash.
+// ACU ships wrapped in VMProtect, which requires its own code and read-only
+// data to stay byte-for-byte intact; a MinHook prologue patch in .text, or a
+// write to the shared vtable in .rdata, breaks that requirement and the
+// process exits. Rather than work around that, we do not touch protected
+// memory at all: per-instance vtable replacement writes only the vptr slot
+// (offset 0) of a camera object the game allocated on the heap. No section of
+// the shipped executable is modified, and no protection, license check or
+// ownership check is bypassed or interfered with.
 // ----------------------------------------------------------------------------
 
 namespace {
@@ -85,10 +88,11 @@ constexpr int kClonedVTableSlots = 256;
 // outward by the current head deflection. Render is unaffected (it rasterises
 // from the projection matrix); only what gets submitted widens - a guard band.
 //
-// A hardware breakpoint is used rather than a code patch because ACU is
-// VMProtect-wrapped and hashes .text/.rdata; the builder is reached by direct
-// CALL (no vtable/pointer to swap). Debug registers touch neither, the same
-// reason the camera uses a per-instance vtable swap. Offsets target ACU v1.5.0.
+// A hardware breakpoint is used rather than a code patch for the same reason
+// the camera uses a per-instance vtable swap: the builder is reached by a
+// direct CALL, so there is no pointer to swap, and we will not write to the
+// shipped executable's sections. A debug register modifies no game memory at
+// all. Offsets target ACU v1.5.0.
 constexpr uintptr_t kFrustumBuilderInjectRva = 0x223C064;
 
 // Actor-cull suppressor: the per-entity visibility function FUN_141ce8a70 ORs
@@ -97,7 +101,7 @@ constexpr uintptr_t kFrustumBuilderInjectRva = 0x223C064;
 // OR mask, computed just before this insn. If we clear bit 4 of RAX in a VEH
 // before the OR runs, the engine cannot set the "hidden by cull volumes" bit,
 // and NPCs that would have been culled stay visible. Hooked via a HW execute
-// breakpoint (DR2), VMProtect-safe (no .text patch).
+// breakpoint (DR2), so no game memory is written.
 constexpr uintptr_t kActorCullOrInstrRva = 0x1CE8CC7;
 
 std::atomic<bool> g_guardEnabled{true};
@@ -143,7 +147,7 @@ bool IsInModuleSection(uintptr_t addr,
 // Axis mapping for AnvilNext (Z-up, Y-forward, RH):
 //   yaw   -> rotation about +Z (up)
 //   pitch -> rotation about +X (right)
-//   roll  -> rotation about +Y (forward), sign-flipped per AGENTS.md
+//   roll  -> rotation about +Y (forward), sign-flipped
 //
 // worldYaw applies yaw about the world up axis (premultiply onto gameQ) so the
 // horizon stays level at extreme camera pitch; otherwise yaw is applied in the
@@ -775,8 +779,8 @@ LONG CALLBACK GuardVeh(PEXCEPTION_POINTERS ep) {
 }
 
 // Arm/disarm a HW execute breakpoint on every thread in the process using the
-// given DR slot (1 or 2). Re-applied periodically by the watcher to cover new
-// threads and counter any VMProtect debug-register scrubbing.
+// given DR slot (1 or 2). Re-applied periodically by the watcher so that
+// threads created after install are covered.
 void SetExecBpAllThreads(int drSlot, uintptr_t addr, bool enable) {
     if (drSlot < 1 || drSlot > 3) return;  // we use DR1 (frustum), DR2 (unused), DR3 (probe)
     int lShift = drSlot * 2;             // L1 at bit 2, L2 at 4, L3 at 6
@@ -1020,8 +1024,7 @@ void WatcherThread(uintptr_t modBase, size_t modSize) {
                 menuOpen ? "opened" : "closed");
         }
 
-        // Re-arm the guard breakpoints: covers threads created since install
-        // and counters any VMProtect debug-register scrubbing.
+        // Re-arm the guard breakpoints: covers threads created since install.
         if (g_guardInjectAddr) SetGuardBpAllThreads(g_guardInjectAddr, true);
         if (g_actorCullInstrAddr) SetActorCullBpAllThreads(g_actorCullInstrAddr, true);
 
@@ -1097,7 +1100,7 @@ bool InstallCameraHook() {
 
     Logger::Instance().Info(
         "Camera hook: ACU.exe at %p (size %.2f MB). Strategy: per-instance vtable "
-        "swap (VMProtect-safe, no .text or .rdata modification).",
+        "swap (no .text or .rdata modification).",
         reinterpret_cast<void*>(modBase),
         modSize / (1024.0 * 1024.0));
 

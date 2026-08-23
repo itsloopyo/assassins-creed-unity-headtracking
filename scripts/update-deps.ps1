@@ -4,7 +4,8 @@
 # within the pinned range and rewrite vendor/ultimate-asi-loader/{LICENSE,README.md}.
 # Manual: dev runs this when they want a fresh upstream bump, then commits the
 # result. CI never refreshes.
-# See ~/.claude/CLAUDE.md "Vendoring Third-Party Dependencies".
+# Vendored loaders are the install-time source of truth: this script is the
+# only thing that refreshes them, and it is run by hand, never by a build.
 #
 # Special case: Ultimate-ASI-Loader ships a DLL inside a release zip, not as a
 # standalone asset. We extract dinput8.dll and vendor it directly so install.cmd

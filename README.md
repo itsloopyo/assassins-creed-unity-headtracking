@@ -172,9 +172,10 @@ MIT - see [LICENSE](LICENSE). Copyright (c) 2026 itsloopyo.
 
 ## Credits
 - **Ubisoft Montreal / Ubisoft** - Assassin's Creed Unity and the AnvilNext engine.
+- **NameTaken3125** - [ACUFixes](https://github.com/NameTaken3125/ACUFixes), the community reverse-engineering project this mod's camera and menu offsets come from. No ACUFixes code is used or redistributed here; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 - **ThirteenAG** - [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader).
 - **Stanisław Halik et al.** - [OpenTrack](https://github.com/opentrack/opentrack).
 - Built on the shared [cameraunlock-core](https://github.com/itsloopyo/cameraunlock-core) library.
 
 ## Disclaimer
-This mod is not affiliated with, endorsed by, or supported by Ubisoft. It modifies only what you see on your own machine; aim, hitboxes, and game logic are unchanged. Tracking is client-side, but keep it off in co-op out of courtesy. Use at your own risk.
+This mod is not affiliated with, endorsed by, or supported by Ubisoft, and requires a legitimately purchased copy of the game. It ships no game code or assets, modifies no file the game installs, and bypasses no copy protection or ownership check. It changes only what you see on your own machine; aim, hitboxes, and game logic are unchanged. Tracking is client-side, but keep it off in co-op out of courtesy. Use at your own risk.

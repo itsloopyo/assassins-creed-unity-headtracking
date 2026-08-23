@@ -16,7 +16,7 @@ inline constexpr int DEFAULT_TOGGLE_KEY          = 0x23;  // VK_END
 inline constexpr int DEFAULT_POSITION_TOGGLE_KEY = 0x21;  // VK_PRIOR (Page Up)
 inline constexpr int DEFAULT_YAW_MODE_KEY        = 0x22;  // VK_NEXT  (Page Down)
 
-// Chord alternatives (Ctrl+Shift+<letter>, Y/U/G/H/J cluster - see CLAUDE.md)
+// Chord alternatives (Ctrl+Shift+<letter>, Y/U/G/H/J cluster)
 inline constexpr int CHORD_TOGGLE_KEY   = 0x59;  // Y
 inline constexpr int CHORD_POSITION_KEY = 0x47;  // G
 inline constexpr int CHORD_YAWMODE_KEY  = 0x48;  // H

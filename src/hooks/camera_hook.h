@@ -8,8 +8,8 @@ namespace ACUHT {
 // ACU v1.5.0), waits asynchronously for a live ACUPlayerCameraComponent,
 // then swaps each instance's vptr onto a cloned vtable whose slot 81
 // (Unk288_ApplyCameraFX) routes the engine's per-frame render-stage camera
-// write through us. Offsets sourced from NameTaken3125/ACUFixes
-// (MIT-licensed RE project).
+// write through us. Offsets sourced from NameTaken3125/ACUFixes; see
+// THIRD-PARTY-NOTICES.md for what that project is and is not used for.
 //
 // Returns true if the install pipeline started cleanly. False means
 // fail-fast: wrong process (rundll32 helper) or game-version mismatch.
