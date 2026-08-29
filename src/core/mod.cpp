@@ -29,6 +29,10 @@ bool Mod::Initialize() {
         Logger::Instance().Warning("Using default configuration");
     }
 
+    // Only ever raises verbosity: a Debug build stays verbose whatever the INI
+    // says, which is what a Debug build is for.
+    if (m_config.verboseLogging) Logger::Instance().SetMinLevel(LogLevel::Debug);
+
     cameraunlock::SensitivitySettings sensitivity;
     sensitivity.yaw   = m_config.yawMultiplier;
     sensitivity.pitch = m_config.pitchMultiplier;

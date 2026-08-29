@@ -54,7 +54,9 @@ struct Config {
     // General
     bool autoEnable = true;
     bool worldSpaceYaw = true;  // horizon-locked yaw, best for third-person
-    bool cameraHookLogging = true;  // log camera-discovery diagnostics on first frames
+    // Off by default. Turning it on adds the camera-discovery, vtable-swap and
+    // cull-frustum diagnostics that are only useful when reporting a problem.
+    bool verboseLogging = false;
 
     bool cullGuardEnabled = true;
     float cullGuardBiasMeters = 500.0f;

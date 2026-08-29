@@ -1,8 +1,8 @@
 # Assassin's Creed Unity Head Tracking
 
-Head tracking for Assassin's Creed Unity. Turning your head nudges the camera on top of the normal third-person orbit, so you can peek around corners and lean into rooftop drops without taking your hands off the mouse or controller. No VR headset required.
+![Assassin's Creed Unity running with this mod](https://raw.githubusercontent.com/itsloopyo/assassins-creed-unity-headtracking/main/assets/readme-clip.gif)
 
-<!-- ![Mod GIF](https://raw.githubusercontent.com/itsloopyo/assassins-creed-unity-headtracking/main/assets/readme-clip.gif) -->
+An unofficial head tracking mod for Assassin's Creed Unity that moves the camera with your head while your mouse or controller keeps aiming, driven by a webcam, phone, or any OpenTrack compatible tracker, with no VR headset required.
 
 ## Features
 - **Head-driven camera nudge** - layered on top of the normal third-person orbit; mouse and controller still drive aim and Arno's facing.
@@ -109,7 +109,7 @@ LimitX=0.20
 LimitY=0.15
 LimitZ=0.25
 LimitZBack=0.05
-InvertX=false
+InvertX=true
 InvertY=false
 InvertZ=false
 Enabled=true
@@ -128,7 +128,8 @@ ChordYawModeKey=0x48  ; H
 AutoEnable=true
 ; Horizon-locked yaw (true) is best for third-person games.
 WorldSpaceYaw=true
-CameraHookLogging=false
+; Adds camera-discovery diagnostics to HeadTracking.log when reporting a problem.
+VerboseLogging=false
 
 [Culling]
 ; Widens actor visibility culling so head turns do not reveal empty crowd edges.

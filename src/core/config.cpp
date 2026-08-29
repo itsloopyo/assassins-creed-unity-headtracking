@@ -108,7 +108,7 @@ bool Config::Load(const char* path) {
 
     autoEnable         = ini.ReadBool("General", "AutoEnable",         autoEnable);
     worldSpaceYaw      = ini.ReadBool("General", "WorldSpaceYaw",      worldSpaceYaw);
-    cameraHookLogging  = ini.ReadBool("General", "CameraHookLogging",  cameraHookLogging);
+    verboseLogging     = ini.ReadBool("General", "VerboseLogging",     verboseLogging);
 
     cullGuardEnabled = ini.ReadBool( "Culling", "GuardEnabled",    cullGuardEnabled);
     cullGuardBiasMeters = ini.ReadFloat("Culling", "GuardBiasMeters", cullGuardBiasMeters);
@@ -180,8 +180,9 @@ bool Config::Save(const char* path) const {
     file << "AutoEnable=" << (autoEnable ? "true" : "false") << "\n";
     file << "; Horizon-locked yaw (true) is best for third-person.\n";
     file << "WorldSpaceYaw=" << (worldSpaceYaw ? "true" : "false") << "\n";
-    file << "; Set false once camera offsets are confirmed - trims log noise.\n";
-    file << "CameraHookLogging=" << (cameraHookLogging ? "true" : "false") << "\n";
+    file << "; Adds camera-discovery and cull-frustum diagnostics to HeadTracking.log.\n";
+    file << "; Leave false unless you are reporting a problem.\n";
+    file << "VerboseLogging=" << (verboseLogging ? "true" : "false") << "\n";
     file << "\n[Culling]\n";
     file << "; Widens actor visibility culling so head turns do not reveal empty crowd edges.\n";
     file << "GuardEnabled=" << (cullGuardEnabled ? "true" : "false") << "\n";

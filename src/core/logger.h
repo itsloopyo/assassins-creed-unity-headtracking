@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstdarg>
 #include <fstream>
 #include <mutex>
@@ -20,6 +21,13 @@ public:
     bool Initialize();
     void Shutdown();
 
+    // Verbose diagnostics are off unless the user turns them on, so anything
+    // logged at Debug must be safe to skip entirely - including the work that
+    // computes its arguments. Call sites that would pay for that work guard it
+    // with IsEnabled().
+    void SetMinLevel(LogLevel level);
+    bool IsEnabled(LogLevel level) const;
+
     void Debug(const char* fmt, ...);
     void Info(const char* fmt, ...);
     void Warning(const char* fmt, ...);
@@ -38,7 +46,7 @@ private:
 
     std::ofstream m_logFile;
     std::mutex m_mutex;
-    LogLevel m_minLevel = LogLevel::Info;
+    std::atomic<LogLevel> m_minLevel{LogLevel::Info};
     bool m_initialized = false;
 };
 

@@ -653,8 +653,15 @@ void WidenCullFrustum(float* base) {
     const float eyeY = g_guardCam.eye[1];
     const float eyeZ = g_guardCam.eye[2];
 
-    int fireIdx = g_guardFireLogCount.fetch_add(1);
-    bool logFire = fireIdx < 20;
+    // Diagnostic only, and capped: the builder fires several times a frame, so
+    // an uncapped or always-on stream would be the entire log within a minute.
+    constexpr int kMaxFireLogs = 20;
+    int fireIdx = -1;
+    if (Logger::Instance().IsEnabled(LogLevel::Debug) &&
+        g_guardFireLogCount.load(std::memory_order_relaxed) < kMaxFireLogs) {
+        fireIdx = g_guardFireLogCount.fetch_add(1);
+    }
+    const bool logFire = fireIdx >= 0 && fireIdx < kMaxFireLogs;
 
     // Precompute inverse lengths once. Previously sqrtf was recomputed across
     // the pair-finding, thru-check, and widening loops - up to ~30 sqrts per
@@ -689,7 +696,7 @@ void WidenCullFrustum(float* base) {
         }
     }
     if (nearIdx < 0) {
-        if (logFire) Logger::Instance().Info("Fire #%d: base=%p SKIP no-near/far", fireIdx, base);
+        if (logFire) Logger::Instance().Debug("Fire #%d: base=%p SKIP no-near/far", fireIdx, base);
         return;
     }
 
@@ -705,9 +712,9 @@ void WidenCullFrustum(float* base) {
         if (fabsf(resid) < 2.0f) ++thru;
     }
     if (logFire) {
-        Logger::Instance().Info("Fire #%d: base=%p near=%d far=%d thru=%d %s",
-                                fireIdx, base, nearIdx, farIdx, thru,
-                                thru < 3 ? "SKIP not-main-apex" : "WIDEN");
+        Logger::Instance().Debug("Fire #%d: base=%p near=%d far=%d thru=%d %s",
+                                 fireIdx, base, nearIdx, farIdx, thru,
+                                 thru < 3 ? "SKIP not-main-apex" : "WIDEN");
     }
     if (thru < 3) return;
 
@@ -968,7 +975,7 @@ int PatchAllInstances(uintptr_t modBase, size_t modSize) {
         // atomic on x64, so the game cannot observe a torn vptr.
         *vptrSlot = ourClone;
         ++patched;
-        Logger::Instance().Info(
+        Logger::Instance().Debug(
             "Camera hook: vptr-swapped instance %p (orig vtable=%p, slot[%d]=%p, rva=+0x%llX)",
             inst, currentVT, kApplyFXSlotIndex, g_origApplyFX,
             static_cast<unsigned long long>(
@@ -1004,7 +1011,11 @@ void WatcherThread(uintptr_t modBase, size_t modSize) {
         int p = PatchAllInstances(modBase, modSize);
         if (p > 0) {
             totalPatched += p;
-            if (totalPatched == p) g_installed.store(true);
+            if (totalPatched == p) {
+                g_installed.store(true);
+                Logger::Instance().Info(
+                    "Camera hook: player camera instance patched - the view hook is live");
+            }
         }
         // Capped: this polls every 250ms and the state it reports does not
         // change on its own, so left uncapped it becomes the bulk of the log a
@@ -1065,9 +1076,6 @@ bool InstallCameraHook() {
             "Camera hook: could not read ACU.exe PE header - staying dormant.");
         return false;
     }
-    Logger::Instance().Info(
-        "Camera hook: ACU.exe fingerprint ts=0x%08X size=0x%08X csum=0x%08X",
-        running.TimeDateStamp, running.SizeOfImage, running.CheckSum);
     if (!running.Matches(kAcuV150Fingerprint)) {
         const auto kind = cameraunlock::memory::ClassifyMismatch(running, kAcuV150Fingerprint);
         const char* hint =
@@ -1077,12 +1085,16 @@ bool InstallCameraHook() {
                 ? "game build is older than v1.5.0 - let the store finish updating the game"
                 : "EXE does not match the supported build (tampered or repacked binary)";
         Logger::Instance().Error(
-            "Camera hook: unknown ACU build (expected v1.5.0: ts=0x%08X size=0x%08X csum=0x%08X). "
+            "Camera hook: unknown ACU build (this EXE: ts=0x%08X size=0x%08X csum=0x%08X; "
+            "expected v1.5.0: ts=0x%08X size=0x%08X csum=0x%08X). "
             "%s. Staying dormant - no hooks installed.",
+            running.TimeDateStamp, running.SizeOfImage, running.CheckSum,
             kAcuV150Fingerprint.TimeDateStamp, kAcuV150Fingerprint.SizeOfImage,
             kAcuV150Fingerprint.CheckSum, hint);
         return false;
     }
+    Logger::Instance().Info("Camera hook: ACU v1.5.0 confirmed (ts=0x%08X)",
+                            running.TimeDateStamp);
 
     if (!IsInModuleSection(kCameraManagerSingletonAddr, modBase, modSize)) {
         Logger::Instance().Error(
@@ -1098,7 +1110,7 @@ bool InstallCameraHook() {
         return false;
     }
 
-    Logger::Instance().Info(
+    Logger::Instance().Debug(
         "Camera hook: ACU.exe at %p (size %.2f MB). Strategy: per-instance vtable "
         "swap (no .text or .rdata modification).",
         reinterpret_cast<void*>(modBase),
@@ -1119,12 +1131,11 @@ bool InstallCameraHook() {
     g_actorCullInstrAddr = 0;  // intentionally not armed
     if (!g_guardVeh) g_guardVeh = AddVectoredExceptionHandler(1, GuardVeh);
     SetGuardBpAllThreads(g_guardInjectAddr, true);
-    Logger::Instance().Info(
-        "Guard armed: frustum widener at +0x%llX (%s, bias %.0f m); "
-        "actor-cull suppressor disabled (broke animations/LOD on first try)",
-        static_cast<unsigned long long>(kFrustumBuilderInjectRva),
-        config.cullGuardEnabled ? "enabled" : "disabled",
-        g_guardBiasMeters);
+    Logger::Instance().Info("Cull-frustum guard band %s (bias %.0f m)",
+                            config.cullGuardEnabled ? "enabled" : "disabled",
+                            g_guardBiasMeters);
+    Logger::Instance().Debug("Guard armed: frustum widener at +0x%llX",
+                             static_cast<unsigned long long>(kFrustumBuilderInjectRva));
 
     g_watcherStop.store(false);
     g_watcherThread = std::thread(WatcherThread, modBase, modSize);

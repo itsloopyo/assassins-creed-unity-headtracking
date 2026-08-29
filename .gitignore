@@ -32,3 +32,6 @@ Thumbs.db
 
 # NexusMods page copy/paste source - local only.
 NEXUS_MODS.md
+
+# Dev-only splash-video toggle - local tooling, never published.
+scripts/skip-intros.ps1

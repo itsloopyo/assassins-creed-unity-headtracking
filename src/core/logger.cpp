@@ -14,20 +14,31 @@ bool Logger::Initialize() {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_initialized) return true;
 
-    std::string logPath = GetModulePath("HeadTracking.log");
+    // Next to the game EXE, not next to this DLL: the ASI loader also picks
+    // .asi files up from scripts/ and plugins/, and a log the user cannot find
+    // is a log they cannot send.
+    std::string logPath = GetHostExePath("HeadTracking.log");
     // Keep one previous generation: the session worth reading is often the one
     // that just crashed, and the user relaunches before sending the file.
-    MoveFileExA(logPath.c_str(), GetModulePath("HeadTracking.prev.log").c_str(),
+    MoveFileExA(logPath.c_str(), GetHostExePath("HeadTracking.prev.log").c_str(),
                 MOVEFILE_REPLACE_EXISTING);
     m_logFile.open(logPath, std::ios::out | std::ios::trunc);
     if (!m_logFile.is_open()) return false;
 
 #ifdef _DEBUG
-    m_minLevel = LogLevel::Debug;
+    m_minLevel.store(LogLevel::Debug, std::memory_order_relaxed);
 #endif
 
     m_initialized = true;
     return true;
+}
+
+void Logger::SetMinLevel(LogLevel level) {
+    m_minLevel.store(level, std::memory_order_relaxed);
+}
+
+bool Logger::IsEnabled(LogLevel level) const {
+    return level >= m_minLevel.load(std::memory_order_relaxed);
 }
 
 void Logger::Shutdown() {
@@ -44,7 +55,7 @@ void Logger::LogVa(LogLevel level, const char* fmt, va_list args) {
 
 #define ACUHT_LOG_IMPL(METHOD, LEVEL)               \
 void Logger::METHOD(const char* fmt, ...) {         \
-    if (LogLevel::LEVEL < m_minLevel) return;       \
+    if (!IsEnabled(LogLevel::LEVEL)) return;        \
     va_list args;                                   \
     va_start(args, fmt);                            \
     LogVa(LogLevel::LEVEL, fmt, args);              \

@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "core/mod.h"
 #include "core/logger.h"
-#include "core/path_utils.h"
 #include <process.h>
 
 static HANDLE g_initThreadHandle = nullptr;
@@ -56,8 +55,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID) {
                 ACUHT::ACUHT_MOD_NAME, ACUHT::ACUHT_VERSION);
             ACUHT::Logger::Instance().Info("  host exe : %s", hostExe);
             ACUHT::Logger::Instance().Info("  self dll : %s", selfPath);
-            ACUHT::Logger::Instance().Info("  log file : %s",
-                ACUHT::GetModulePath("HeadTracking.log").c_str());
 
             g_initThreadHandle = (HANDLE)_beginthreadex(nullptr, 0, InitThread, nullptr, 0, nullptr);
             if (!g_initThreadHandle) {
