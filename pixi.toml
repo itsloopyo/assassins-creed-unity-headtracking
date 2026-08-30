@@ -6,6 +6,7 @@ channels = ["conda-forge"]
 platforms = ["win-64"]
 
 [tasks]
+sync = "git submodule update --remote cameraunlock-core"
 # Manual: refresh vendored ASI Loader from upstream. Dev runs this when bumping
 # the bundled version, then commits. CI never refreshes.
 update-deps = { cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/update-deps.ps1" }
