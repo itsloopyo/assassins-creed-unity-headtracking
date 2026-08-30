@@ -1,30 +1,9 @@
 $ErrorActionPreference = "Stop"
 
-$GameExe = "ACU.exe"
-$SteamFolderName = "Assassin's Creed Unity"
-$UbisoftProductIds = @("720", "526", "4915", "4917")
+$scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent $scriptDir
 
-function Find-GamePath {
-    if ($env:ASSASSINS_CREED_UNITY_PATH -and (Test-Path (Join-Path $env:ASSASSINS_CREED_UNITY_PATH $GameExe))) {
-        return $env:ASSASSINS_CREED_UNITY_PATH.TrimEnd('\', '/')
-    }
-    foreach ($productId in $UbisoftProductIds) {
-        $key = "HKLM:\SOFTWARE\WOW6432Node\Ubisoft\Launcher\Installs\$productId"
-        $installDir = (Get-ItemProperty -Path $key -Name "InstallDir" -ErrorAction SilentlyContinue).InstallDir
-        if ($installDir -and (Test-Path (Join-Path $installDir $GameExe))) {
-            return $installDir.TrimEnd('\', '/')
-        }
-    }
-    $steamPath = (Get-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -Name InstallPath -ErrorAction SilentlyContinue).InstallPath
-    if (-not $steamPath) {
-        $steamPath = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Valve\Steam" -Name InstallPath -ErrorAction SilentlyContinue).InstallPath
-    }
-    if ($steamPath) {
-        $candidate = Join-Path (Join-Path (Join-Path $steamPath "steamapps") "common") $SteamFolderName
-        if (Test-Path (Join-Path $candidate $GameExe)) { return $candidate }
-    }
-    return $null
-}
+Import-Module (Join-Path $projectRoot "cameraunlock-core\powershell\GamePathDetection.psm1") -Force
 
 function Find-UbisoftConnectExe {
     $key = "HKLM:\SOFTWARE\WOW6432Node\Ubisoft\Launcher"
@@ -45,9 +24,11 @@ function Find-UbisoftConnectExe {
     return $null
 }
 
-$gamePath = Find-GamePath
+$gameId   = 'assassins-creed-unity'
+$config   = Get-GameConfig -GameId $gameId
+$gamePath = Find-GamePath -GameId $gameId
 if (-not $gamePath) {
-    Write-Error "Could not find Assassin's Creed Unity. Set ASSASSINS_CREED_UNITY_PATH."
+    Write-GameNotFoundError -GameName $config.DisplayName -EnvVar $config.EnvVar -SteamFolder $config.SteamFolder
     exit 1
 }
 
@@ -78,6 +59,6 @@ if (-not $upcRunning) {
     Start-Sleep -Seconds 2
 }
 
-$acuExe = Join-Path $gamePath $GameExe
+$acuExe = Join-Path $gamePath $config.Executable
 Write-Host "Launching: $acuExe" -ForegroundColor Green
 Start-Process -FilePath $acuExe -WorkingDirectory $gamePath
