@@ -12,7 +12,7 @@ Assassin's Creed Unity.
 | Component | Version | Licence | How it ships |
 |-----------|---------|---------|--------------|
 | Ultimate ASI Loader | v9.7.2 | MIT | Bundled verbatim in the installer ZIP |
-| cameraunlock-core | 1fd2956b1819137f723a552725462ab25c14fa24 | MIT | Compiled into `AssassinsCreedUnityHeadTracking.asi` |
+| cameraunlock-core | 0f7a63455ddeb91677c9268e88fd35833aa77359 | MIT | Compiled into `AssassinsCreedUnityHeadTracking.asi` |
 | OpenTrack | n/a | ISC | Not bundled; UDP protocol interoperability only |
 
 ---
@@ -59,7 +59,7 @@ SOFTWARE.
 Git submodule at `cameraunlock-core/`, compiled into `AssassinsCreedUnityHeadTracking.asi`. Our own code,
 MIT licensed, reproduced here so the notices are complete.
 
-- Pinned commit: `1fd2956b1819137f723a552725462ab25c14fa24`
+- Pinned commit: `0f7a63455ddeb91677c9268e88fd35833aa77359`
 
 ```
 MIT License
