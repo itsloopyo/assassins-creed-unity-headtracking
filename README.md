@@ -156,6 +156,9 @@ LimitZ=0.25
 LimitZBack=0.05
 InvertX=true
 InvertY=false
+; InvertZ is for a tracker that sends depth backwards, not for a lean that
+; feels reversed. It is applied before the LimitZ / LimitZBack clamp, so
+; turning it on also swaps the travel budgets to 0.05m forward and 0.25m back.
 InvertZ=false
 Enabled=true
 
@@ -189,7 +192,7 @@ GuardBiasMeters=500.0
 - **Mod not loading** - confirm `dinput8.dll` and `AssassinsCreedUnityHeadTracking.asi` sit next to `ACU.exe`. A `HeadTracking.log` file appearing next to them is a good sign. It is rewritten on every launch and the previous run is kept as `HeadTracking.prev.log`, so send both when reporting a problem. If the game crashes on launch, removing those two files restores vanilla behavior.
 - **No tracking response** - check that your tracker is outputting UDP to `127.0.0.1:4242` and that the port matches `UDPPort` in `HeadTracking.ini`.
 - **Jittery or unstable tracking** - raise `[Sensitivity] LocalSmoothing` (tracker on this PC) or `[Sensitivity] RemoteSmoothing` (phone or other network device) toward `0.3`. Local defaults to `0.0` for zero latency, remote to `0.15` because network packets jitter; the mod picks one per connection from the packet source address.
-- **Wrong rotation / horizon whipping** - lower `[Sensitivity] RollMultiplier`, or set `[General] WorldSpaceYaw=true` for horizon-locked yaw. Use the invert options in `[Position]` if an axis moves the wrong way.
+- **Wrong rotation / horizon whipping** - lower `[Sensitivity] RollMultiplier`, or set `[General] WorldSpaceYaw=true` for horizon-locked yaw. Use `[Position] InvertX` or `InvertY` if an axis moves the wrong way. `InvertZ` is for a tracker that sends depth backwards, not for a lean that feels reversed: it is applied before the `LimitZ` / `LimitZBack` clamp, so switching it on also swaps the travel budgets to 0.05m forward and 0.25m back.
 - **NPCs disappear while turning your head** - keep `[Culling] GuardEnabled=true`. Raise `GuardBiasMeters` if crowd edges still pop; lower it if you need to test performance impact.
 
 ## Updating
