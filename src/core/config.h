@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "cameraunlock/math/smoothing_utils.h"
+
 namespace ACUHT {
 
 struct Config {
@@ -23,8 +25,8 @@ struct Config {
     // Smoothing is picked per connection from the packet source address: a
     // tracker on this machine (loopback) uses localSmoothing, a remote network
     // device uses remoteSmoothing. Both cover rotation and position.
-    float localSmoothing = 0.0f;
-    float remoteSmoothing = 0.15f;
+    float localSmoothing = static_cast<float>(cameraunlock::math::kDefaultLocalSmoothing);
+    float remoteSmoothing = static_cast<float>(cameraunlock::math::kDefaultRemoteSmoothing);
 
     // Hotkeys (nav cluster)
     int toggleKey          = DEFAULT_TOGGLE_KEY;
