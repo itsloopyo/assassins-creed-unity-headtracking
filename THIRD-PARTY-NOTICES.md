@@ -12,7 +12,7 @@ Assassin's Creed Unity.
 | Component | Version | Licence | How it ships |
 |-----------|---------|---------|--------------|
 | Ultimate ASI Loader | v9.7.2 | MIT | Bundled verbatim in the installer ZIP |
-| cameraunlock-core | f441e29427b7422a584ba492dddd7788881804b0 | MIT | Compiled into `AssassinsCreedUnityHeadTracking.asi` |
+| cameraunlock-core | 29b11b62f183183295d435b7292d8c1c0a8e5cff | MIT | Compiled into `AssassinsCreedUnityHeadTracking.asi` |
 | OpenTrack | n/a | ISC | Not bundled; UDP protocol interoperability only |
 
 ---
@@ -59,12 +59,12 @@ SOFTWARE.
 Git submodule at `cameraunlock-core/`, compiled into `AssassinsCreedUnityHeadTracking.asi`. Our own code,
 MIT licensed, reproduced here so the notices are complete.
 
-- Pinned commit: `f441e29427b7422a584ba492dddd7788881804b0`
+- Pinned commit: `29b11b62f183183295d435b7292d8c1c0a8e5cff`
 
 ```
 MIT License
 
-Copyright (c) 2026 CameraUnlock
+Copyright (c) 2026 itsloopyo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -102,11 +102,11 @@ obligation here. It is credited because the wire format is its work.
 - **License:** none published. The repository carries no LICENSE file, so all
   rights are reserved by its author.
 - **Upstream:** https://github.com/NameTaken3125/ACUFixes
-- **Usage:** ACUFixes is an independent, community reverse-engineering effort
-  covering Assassin's Creed Unity 1.5.0. The numeric facts about the retail
-  binary published there - the CameraManager and MenuManager singleton
-  addresses, and the struct field offsets named in `src/hooks/camera_hook.*` -
-  are what let this mod find the camera without repeating that work. We are
+- **Usage:** ACUFixes is an independent community project covering Assassin's
+  Creed Unity 1.5.0. The numeric facts about the retail binary published there -
+  the CameraManager and MenuManager singleton addresses, and the struct field
+  offsets named in `src/hooks/camera_hook.*` - are what let this mod find the
+  camera without repeating that work. We are
   grateful for it, and credit is owed whether or not it is legally required.
 - **Bundled:** no. **No code, header, or other file from ACUFixes is copied,
   adapted, redistributed, or linked into this project.** Because the project
@@ -135,4 +135,4 @@ ACUFixes project, credited above. The culling RVAs
 (`kFrustumBuilderInjectRva`, `kActorCullOrInstrRva`) and the PE fingerprint of
 the v1.5.0 build were derived by the authors through their own analysis of a
 legitimately owned copy. Either way they are factual measurements recorded as
-numbers; no decompiled or disassembled game code is stored in this repository.
+numbers; no game code of any kind is stored in this repository.

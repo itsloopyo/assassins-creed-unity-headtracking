@@ -19,9 +19,9 @@ namespace ACUHT {
 // ----------------------------------------------------------------------------
 //
 // All offsets and the singleton address are the ones published by the
-// NameTaken3125/ACUFixes reverse-engineering project, which targets the same
-// game version. Its findings are referenced as numbers; none of its code is
-// used here (it publishes no license). References:
+// NameTaken3125/ACUFixes project, which targets the same game version. Its
+// findings are referenced as numbers; none of its code is used here (it
+// publishes no license). References:
 //   CommonLibACU/ACU-RE/inc/ACU/CameraManager.h
 //   CommonLibACU/ACU-RE/inc/ACU/ACUPlayerCameraComponent.h
 //
@@ -428,8 +428,8 @@ void* RunPlaneScan(const DbgSnapshot& s) {
 
 // VEH: when the engine writes the watched frustum address, the CPU raises a
 // debug single-step exception with DR6 bit0 set. Log the writer's RIP (and its
-// module RVA - the prize for Ghidra), then leave the breakpoint armed for a few
-// more fires to catch all the instructions of the build loop.
+// module RVA), then leave the breakpoint armed for a few more fires to catch
+// all the instructions of the build loop.
 LONG CALLBACK HbpVeh(PEXCEPTION_POINTERS ep) {
     if (ep->ExceptionRecord->ExceptionCode != EXCEPTION_SINGLE_STEP)
         return EXCEPTION_CONTINUE_SEARCH;
@@ -608,7 +608,7 @@ void DbgWorkerThread() {
 
         // Once VEH captured the array pointer, disarm DR3 and arm a DR0 write
         // BP on the volume array's first element. Any write to it is the
-        // cull-volume builder we are hunting.
+        // cull-volume builder.
         if (g_volumeProbeCaptured.exchange(false)) {
             void* arr = g_capturedArrayPtr.load();
             g_volumeProbeArmed.store(false);
