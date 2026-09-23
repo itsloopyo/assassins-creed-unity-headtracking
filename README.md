@@ -8,6 +8,7 @@ An unofficial head tracking mod for Assassin's Creed Unity that moves the camera
 
 - **Head-driven camera nudge** - layered on top of the normal third-person orbit; mouse and controller still drive aim and Arno's facing.
 - **6DOF positional tracking** - lean and peek with head position, tuned to ACU's tight follow camera.
+- **Works with any OpenTrack compatible tracker** - free options available for PC, iOS and Android
 
 ## Requirements
 
@@ -16,6 +17,13 @@ An unofficial head tracking mod for Assassin's Creed Unity that moves the camera
 - Windows 10 or 11, 64-bit.
 
 ## Installation
+
+### Lopari
+
+Download [Lopari](https://lopari.app), choose **Assassin's Creed Unity**, and click
+**Play with head tracking**.
+
+### Standalone Installer
 
 1. Download the latest installer ZIP from the [Releases page](https://github.com/itsloopyo/assassins-creed-unity-headtracking/releases).
 2. Extract it anywhere.
