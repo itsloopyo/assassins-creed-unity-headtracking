@@ -18,6 +18,10 @@ set "ASI_LOADER_NAME=dinput8.dll"
 :: the unconditional copy and resets every key on every update.
 set "MOD_SEED_FILES="
 set "MOD_CONTROLS=Controls:&echo   End/Ctrl+Shift+Y  - Toggle head tracking on/off&echo   PgUp/Ctrl+Shift+G - Toggle position tracking&echo   PgDn/Ctrl+Shift+H - Toggle world/local yaw"
+:: Not used by this mod. Set blank so a value another mod's wrapper left in
+:: the same console does not reach the body.
+set "ASI_SUBDIR="
+set "ASI_LOADER_VERSION="
 :: ASI_LOADER_NAME is the filename the ASI DLL is renamed to. DL2 and most
 :: modern games use winmm.dll; older ones use dinput8.dll or xinput1_3.dll.
 :: vendor/ultimate-asi-loader/dinput8.dll is the bundled source; we copy it
